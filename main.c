@@ -44,7 +44,7 @@ void printboard (void);
 
 
     
-    
+  /*
     
   int main (void){  
    
@@ -68,13 +68,13 @@ void printboard (void);
        int entrada,loop=1;    //entrada es una variable que me permite almacenar el dato aportado por el usuario, loop, me permite permanecer en el ciclo
     
         ALLEGRO_EVENT ev;   //se crea la estructura ev
-/*        if (al_get_next_event(event_queue, &ev)) //Toma un evento de la cola
+        if (al_get_next_event(event_queue, &ev)) //Toma un evento de la cola
         {
             if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE){    
                 close_display =1;
                 loop=0;
             }
-        }*/
+        }
         
         
         int n;
@@ -144,10 +144,10 @@ void printboard (void);
     closepro();
 
 } 
-
+*/
 
     
- /*   
+   
 int piece_set_down=0,finish=0,moving=0;
 unsigned int TimerTick=4;
 int n,end=1;
@@ -180,21 +180,30 @@ void* thread_down(){ // Periodic Task Thread
 	
 	while (end) 
 	{
-            if(!TimerTick && finish){
+            /*if(!TimerTick ){
                 printf("soy Down\n\n");
                 if(check_down(n)){
                    
-                    printf("bajo");
+                    printf("bajo");*/
                     
-                    piece_down(n);
-                                      
-                }
+                   // piece_down(n);
+                    
+                    gameboard[10][10]=1;
+                    update_board();
+                      
+                    while(!(move()==10)){
+            
+                            end++;
+                     }
+                    end=0;
+        
+               /* }
                 else{
                     piece_set_down=1;
                 }
                 finish=0;
                 TimerTick=4;
-            }
+            }*/
 	}
 }
 
@@ -348,24 +357,29 @@ int main()
         update_board();
         
         
-        
+        gameboard[10][10]=1;
+        update_board();
         
 
-        pthread_create(&tid1,NULL,thread_timer,NULL);
-        pthread_create(&tid4,NULL,thread_newpiece,NULL);
+      //  pthread_create(&tid1,NULL,thread_timer,NULL);
+       // pthread_create(&tid4,NULL,thread_newpiece,NULL);
         pthread_create(&tid2,NULL,thread_down,NULL);
-        pthread_create(&tid3,NULL,thread_move,NULL);
-        pthread_create(&tid5,NULL,thread_check_board,NULL);        
-        pthread_create(&tid5,NULL,thread_joy,NULL);        
-        pthread_join(tid1,NULL);
+      //  pthread_create(&tid3,NULL,thread_move,NULL);
+       // pthread_create(&tid5,NULL,thread_check_board,NULL);        
+      // pthread_create(&tid5,NULL,thread_joy,NULL);        
+      //  pthread_join(tid1,NULL);
         pthread_join(tid2,NULL);
-        pthread_join(tid3,NULL);
-        pthread_join(tid4,NULL);
-        pthread_join(tid5,NULL);
+       // pthread_join(tid3,NULL);
+       // pthread_join(tid4,NULL);
+       // pthread_join(tid5,NULL);
         
-        
+        while(!(move()==10)){
+            
+            end++;
+        }
+            
         return 0;
         
 }
-  */
-   
+  
+ 
