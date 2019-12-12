@@ -23,7 +23,7 @@
 #include <allegro5/allegro_acodec.h>
 #include <allegro5/allegro_audio.h>
 #include <unistd.h>
-
+#include <semaphore.h>
 #include <pthread.h>
 
 
@@ -147,30 +147,31 @@ void printboard (void);
 */
 
     
-   
-int piece_set_down=0,finish=0,moving=0;
-unsigned int TimerTick=4;
+    
+    
+int piece_set_down=0,finish=0;
+unsigned int TimerTick=2;
 int n,end=1;
 int get_move,conta,timex=150;
-
+sem_t len1,len2;
 void closepro(void);
 
 
 
 void* thread_timer()  // Time base Thread
-{
+{	       
     while(end)
     {
         if(conta>=7){
             timex-=15;
             conta=0;
         }
-		usleep(timex*ONE_MS); // 100ms * 
-		if (TimerTick){
-			
-                    TimerTick--;
-                        printf("soy tick--\n\n");
-                }
+        usleep(timex*ONE_MS); // 100ms * 
+        if (TimerTick){
+
+            TimerTick--;
+                printf("soy tick--\n\n");
+        }
     }
 }
 
@@ -178,55 +179,67 @@ void* thread_down(){ // Periodic Task Thread
 
 
 	
-	while (end) 
-	{
-            /*if(!TimerTick ){
-                printf("soy Down\n\n");
-                if(check_down(n)){
-                   
-                    printf("bajo");*/
+	while (end) {
+            if( piece_set_down || (!TimerTick )){
+                    printf("soy Down\n\n");
+                    if(check_down(n)){
+
+                        printf("bajo");
+
+                        piece_down(n);
+
+                    }
+                    else{
+                        piece_set_down=1;
+                    }
+                
+                    if(piece_set_down){
+
+                    printf("soy newpiece\n\n");
                     
-                   // piece_down(n);
+                    stayed_blocks(); 
+                    check_board();
+                    clean_struct(n);
                     
-                    gameboard[10][10]=1;
+                    n=gen_pieza();
+                    printf("pieza numero:%d\n",n);
+                    print_pieza(n);
+                    piece_set_down=0;
+                    conta++;
+
+                    }
+/*
+                    sem_wait(&len1);*/
                     update_board();
-                      
-                    while(!(move()==10)){
-            
-                            end++;
-                     }
-                    end=0;
-        
-               /* }
-                else{
-                    piece_set_down=1;
-                }
-                finish=0;
-                TimerTick=4;
-            }*/
-	}
+                   /* sem_post(&len2);
+*/
+                    TimerTick=4;
+                    finish=0;
+            }
+    }
 }
 
 
 void * thread_joy(){ // Periodic Task Thread
 
 
-	
-	while (end) 
-	{   
-            
+
+        while (end) 
+        {   
+
             if(move()==10){
                 end=0;
                 closepro();
             }
 
-	}
+        }
 }
 
 
 
 
 
+/*
 void * thread_newpiece(){ // Periodic Task Thread
 
 
@@ -251,18 +264,19 @@ void * thread_newpiece(){ // Periodic Task Thread
 
 	}
 }
+*/
 
 void * thread_move(){ // The APP
-	
-        
-        while (end){
-            if(TimerTick && piece_set_down==0 ){
-                printf("soy move\n\n");
-                
+
+
+        while(end){
+            
+           
+            if(TimerTick && check_down(n) && piece_set_down==0){
+                printf("soy move\n\n");                
                 get_move=move();
                 
-                
-                usleep(10*ONE_MS);               
+                               
                 
                 if( get_move==2 ){
 
@@ -291,11 +305,11 @@ void * thread_move(){ // The APP
                 if( get_move==-2 ){
 
                     down(n);
-
+                    piece_set_down=1;
                 }    
                 
                  if(move()==10){
-                end=0;
+                    end=0;
                 }
                 
                 if (!check_down(n)){
@@ -303,28 +317,52 @@ void * thread_move(){ // The APP
                     usleep((timex-10)*ONE_MS);
                     
                 }
-               
-                
-               update_board();
-                 
-                
-                finish=1;
+               // update_board();
+/*
+                sem_post(&len1);
+                sem_wait(&len2);
+*/
 
             }
+/*
+            else{
+                finish=1;
+            }
+*/
+        
         }
 
 }
 
-void * thread_check_board(){
+
+void * thread_init(){
+    
+    create_floor();
+    clean_struct(0);
+    clean_struct(1);
+    clean_struct(2);
+    clean_struct(3);
+    clean_struct(4);
+    clean_struct(5);
+    clean_struct(6);
+
+
+    init_blocks();
+    inicializacion();
+
+
+
+    n=gen_pieza();
+    printf("pieza numero:%d\n",n);
+
+    print_pieza(n);
+
+            
     while(end){
-        
-        if(piece_set_down && (!moving)){
-            printf("soy chek\n\n");
-            
-            moving=1;
-            
+            if(!TimerTick){
+                update_board();
+            }
         }
-    }
 }
 
 
@@ -333,53 +371,27 @@ int main()
 {
         pthread_t tid1,tid2,tid3,tid4,tid5;
         srand(time(NULL));
-        
-        create_floor();
-        clean_struct(0);
-        clean_struct(1);
-        clean_struct(2);
-        clean_struct(3);
-        clean_struct(4);
-        clean_struct(5);
-        clean_struct(6);
-
-       
-        init_blocks();
-        inicializacion();
-
-        
-        
-        n=gen_pieza();
-        printf("pieza numero:%d\n",n);
-
-        print_pieza(n);
-        
-        update_board();
-        
-        
-        gameboard[10][10]=1;
-        update_board();
-        
-
-      //  pthread_create(&tid1,NULL,thread_timer,NULL);
-       // pthread_create(&tid4,NULL,thread_newpiece,NULL);
-        pthread_create(&tid2,NULL,thread_down,NULL);
-      //  pthread_create(&tid3,NULL,thread_move,NULL);
-       // pthread_create(&tid5,NULL,thread_check_board,NULL);        
-      // pthread_create(&tid5,NULL,thread_joy,NULL);        
-      //  pthread_join(tid1,NULL);
-        pthread_join(tid2,NULL);
-       // pthread_join(tid3,NULL);
-       // pthread_join(tid4,NULL);
-       // pthread_join(tid5,NULL);
-        
-        while(!(move()==10)){
-            
-            end++;
+        if ( sem_init(&len1, 0, 0) != 0 ){
+                // Error: initialization failed
         }
-            
+        if ( sem_init(&len2, 0, 0) != 0 )
+	{
+		// Error: initialization failed
+	}        
+        pthread_create(&tid1,NULL,thread_timer,NULL);
+        pthread_create(&tid2,NULL,thread_down,NULL);
+        pthread_create(&tid3,NULL,thread_move,NULL);
+        pthread_create(&tid5,NULL,thread_init,NULL);        
+ //       pthread_create(&tid5,NULL,thread_joy,NULL);        
+        pthread_join(tid1,NULL);
+        pthread_join(tid2,NULL);
+        pthread_join(tid3,NULL);     
+        pthread_join(tid5,NULL);
+        
+        
         return 0;
         
 }
-  
+
+   
  
