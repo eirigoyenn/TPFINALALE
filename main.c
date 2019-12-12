@@ -23,7 +23,6 @@
 #include <allegro5/allegro_acodec.h>
 #include <allegro5/allegro_audio.h>
 #include <unistd.h>
-#include <semaphore.h>
 #include <pthread.h>
 
 
@@ -153,7 +152,6 @@ int piece_set_down=0,finish=0;
 unsigned int TimerTick=2;
 int n,end=1;
 int get_move,conta,timex=150;
-sem_t len1,len2;
 void closepro(void);
 
 
@@ -180,7 +178,7 @@ void* thread_down(){ // Periodic Task Thread
 
 	
 	while (end) {
-            if( piece_set_down || (!TimerTick )){
+            if( piece_set_down || (!TimerTick)){
                     printf("soy Down\n\n");
                     if(check_down(n)){
 
@@ -208,13 +206,7 @@ void* thread_down(){ // Periodic Task Thread
                     conta++;
 
                     }
-/*
-                    sem_wait(&len1);*/
-                    update_board();
-                   /* sem_post(&len2);
-*/
                     TimerTick=4;
-                    finish=0;
             }
     }
 }
@@ -239,32 +231,7 @@ void * thread_joy(){ // Periodic Task Thread
 
 
 
-/*
-void * thread_newpiece(){ // Periodic Task Thread
 
-
-
-	
-	while (end){
-            if(piece_set_down && moving){
-                
-                printf("soy newpiece\n\n");
-                stayed_blocks(); 
-            
-                check_board();
-                clean_struct(n);
-                n=gen_pieza();
-                printf("pieza numero:%d\n",n);
-                print_pieza(n);
-                piece_set_down=0;
-                moving=0;
-                conta++;
-                
-            }
-
-	}
-}
-*/
 
 void * thread_move(){ // The APP
 
@@ -317,19 +284,9 @@ void * thread_move(){ // The APP
                     usleep((timex-10)*ONE_MS);
                     
                 }
-               // update_board();
-/*
-                sem_post(&len1);
-                sem_wait(&len2);
-*/
 
             }
-/*
-            else{
-                finish=1;
-            }
-*/
-        
+
         }
 
 }
@@ -359,9 +316,8 @@ void * thread_init(){
 
             
     while(end){
-            if(!TimerTick){
-                update_board();
-            }
+            update_board();
+            usleep(10000);
         }
 }
 
@@ -369,25 +325,22 @@ void * thread_init(){
 
 int main()
 {
-        pthread_t tid1,tid2,tid3,tid4,tid5;
-        srand(time(NULL));
-        if ( sem_init(&len1, 0, 0) != 0 ){
-                // Error: initialization failed
-        }
-        if ( sem_init(&len2, 0, 0) != 0 )
-	{
-		// Error: initialization failed
-	}        
+        pthread_t tid1,tid2,tid3,tid4;
+        srand(time(NULL));    
+        
+        pthread_create(&tid4,NULL,thread_init,NULL);
+        usleep(1000000);
         pthread_create(&tid1,NULL,thread_timer,NULL);
+        usleep(1000000);
+         pthread_create(&tid3,NULL,thread_move,NULL);
+        usleep(1000000);
         pthread_create(&tid2,NULL,thread_down,NULL);
-        pthread_create(&tid3,NULL,thread_move,NULL);
-        pthread_create(&tid5,NULL,thread_init,NULL);        
- //       pthread_create(&tid5,NULL,thread_joy,NULL);        
+        usleep(1000000);
+      
         pthread_join(tid1,NULL);
         pthread_join(tid2,NULL);
         pthread_join(tid3,NULL);     
-        pthread_join(tid5,NULL);
-        
+        pthread_join(tid4,NULL);
         
         return 0;
         
