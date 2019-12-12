@@ -38,7 +38,7 @@ int gen_pieza(void){
    
     srand(time(NULL));
     
-    int piezano= rand()%2 ;
+    int piezano= rand()%7;
  
     return piezano;
 
@@ -459,7 +459,7 @@ int rotate(int n){
     }
     
     
-    if( piezas[n].pos.x+piezas[n].size < NCol && cont==0 ){
+    if( piezas[n].pos.x+piezas[n].size <= NCol && cont==0 ){
         
     
     
@@ -571,12 +571,12 @@ void reorder_pieza(int n){
 	}
 }
 void down(int n){
-    
-    for(;check_down(n);){
+    int out=1;
+    for(;check_down(n) && out;){
+        if (move()==-2){
+            out=0;
+        }        
         piece_down(n);
-        
-        
-        
         usleep(70000);
     }
 }

@@ -13,8 +13,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include    "structs.h"
-#include    "game.h"
+#include "structs.h"
+#include "game.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h> 
@@ -193,17 +193,17 @@ void* thread_down(){ // Periodic Task Thread
                 
                     if(piece_set_down){
 
-                    printf("soy newpiece\n\n");
-                    
-                    stayed_blocks(); 
-                    check_board();
-                    clean_struct(n);
-                    
-                    n=gen_pieza();
-                    printf("pieza numero:%d\n",n);
-                    print_pieza(n);
-                    piece_set_down=0;
-                    conta++;
+                        printf("soy newpiece\n\n");
+
+                        stayed_blocks(); 
+                        check_board();
+                        clean_struct(n);
+
+                        n=gen_pieza();
+                        printf("pieza numero:%d\n",n);
+                        print_pieza(n);
+                        piece_set_down=0;
+                        conta++;
 
                     }
                     TimerTick=4;
@@ -272,7 +272,6 @@ void * thread_move(){ // The APP
                 if( get_move==-2 ){
 
                     down(n);
-                    piece_set_down=1;
                 }    
                 
                  if(move()==10){
@@ -317,7 +316,7 @@ void * thread_init(){
             
     while(end){
             update_board();
-            usleep(10000);
+            usleep(1000);
         }
 }
 
@@ -332,7 +331,7 @@ int main()
         usleep(1000000);
         pthread_create(&tid1,NULL,thread_timer,NULL);
         usleep(1000000);
-         pthread_create(&tid3,NULL,thread_move,NULL);
+        pthread_create(&tid3,NULL,thread_move,NULL);
         usleep(1000000);
         pthread_create(&tid2,NULL,thread_down,NULL);
         usleep(1000000);
