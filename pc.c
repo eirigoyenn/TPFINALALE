@@ -7,6 +7,7 @@
 void update_board(void);
 int inicializacion(void);
 int move (void);
+void print_menu (void);
 
 
 
@@ -31,7 +32,7 @@ int move (void);
 #include <allegro5/allegro_audio.h>
 
 #define FPS    60.0
-#define HEIGHT 836
+#define HEIGHT 700
 #define WIDTH  1100
 #define CUADRADITO_SIZE 32
 #define MOVE_RATE  4.0
@@ -44,13 +45,14 @@ int move (void);
     
     ALLEGRO_EVENT ev;
     
-    void closepro(void);
+    
+    
+    
+void closepro(void);
 
 void create_pantalla(void);
-
- void update_board(void);
- int close_display = 0;
- 
+void update_board(void);
+int close_display = 0;
 
 int inicializacion (void){
     
@@ -125,6 +127,9 @@ int inicializacion (void){
     
 }
 
+int print_menu (int palabra,int wait1,int numero,int wait2){
+    return 0;
+}
 
 void create_pantalla(void){           //se crea el grafico del puerto A(los 8flags)
     int i,j;
@@ -151,7 +156,7 @@ void create_pantalla(void){           //se crea el grafico del puerto A(los 8fla
 int move(void){
    
    
-   al_get_next_event(event_queue, &ev);
+    al_get_next_event(event_queue, &ev);
     int get_move=0;
     if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
                 switch (ev.keyboard.keycode) {
@@ -170,8 +175,11 @@ int move(void){
                     case ALLEGRO_KEY_RIGHT:
                         get_move=1;
                         break;
-                        
                     
+                    case ALLEGRO_KEY_ENTER:
+                        get_move='\n';
+                        break;
+               
                 }
             }
     else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
@@ -191,9 +199,11 @@ int move(void){
                     case ALLEGRO_KEY_RIGHT:
                         get_move=0;
                         break;
-                        
-                      
-
+                    
+                    case ALLEGRO_KEY_ENTER:
+                        get_move=0;
+                        break;
+                    
                     
                 }
                 
@@ -201,15 +211,10 @@ int move(void){
     else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
                
                     get_move = 10;
-
-                    
+                 
     }
-    /*if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-                
-                }*/
-    
     return get_move;
-    }  
+}  
 
 
 void closepro(void){
@@ -270,7 +275,7 @@ void update_board(void){
                          al_draw_rectangle( WIDTH*(j+6)/25, HEIGHT*(i+2)/19 ,WIDTH*(j+6+1)/25,HEIGHT*(i+1+2)/19,  al_color_name("grey"),0);
                         break;
                     case 7:
-                    case 17:
+                    case 17: 
                         al_draw_filled_rectangle( WIDTH*(j+6)/25, HEIGHT*(i+2)/19 ,WIDTH*(j+6+1)/25,HEIGHT*(i+1+2)/19,  al_color_name("violet"));
                          al_draw_rectangle( WIDTH*(j+6)/25, HEIGHT*(i+2)/19 ,WIDTH*(j+6+1)/25,HEIGHT*(i+1+2)/19,  al_color_name("grey"),0);
                         break;

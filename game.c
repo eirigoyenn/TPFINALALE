@@ -2,15 +2,29 @@
 #include <stdlib.h>
 #include "structs.h"
 #include "game.h"
-
+/*
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_image.h>
+#include <allegro5/allegro_primitives.h> 
+#include <allegro5/allegro_color.h>
+#include <allegro5/allegro5.h>
+#include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_audio.h>
+*/
 
 #include <time.h>
 #include <unistd.h>
 
 #define LEVEL 0
+#define HORIZONTAL x
+#define VERTICAL y
+#define ENTER '\n'
 
-static int score,level;
-typedef struct {
+static int score,level=0;
+
+
+
+typedef struct { 
     unsigned int x;
     unsigned int y;
     
@@ -26,11 +40,32 @@ typedef struct {
 }ARR_PIECES; 
 
 
+typedef struct {
+    
+    int *values;
+    int size;
+    dcoord_t pos;    
+    
+}NUM; 
+
+
+typedef struct {
+    
+    int *values;
+    int sizex;
+    int sizey;
+    dcoord_t pos;    
+    
+}WORD; 
+
+
 extern int gameboard[VNFil+1][NCol];
 
 extern ARR_PIECES piezas[7];
 
+extern NUM nums[9];
 
+extern WORD words[5];
 
 
 int gen_pieza(void){
@@ -62,16 +97,17 @@ void clean_struct (int gen_pieza){
         }
          piezas[gen_pieza].rotacion=0;
     }
-   
-    
-/*
-    order_values(gen_pieza,0);
-*/
-    
 }
 
+
+void clean_word (int palabra){
+    
+    words[palabra].pos.x=12;
+    words[palabra].pos.y=7;
+    
+}
       
-void check_board(void){
+int check_board(int level){
     
     int i,j,countf=0,counts=0;
     
@@ -112,16 +148,32 @@ void check_board(void){
     }
     switch(counts){
         
-        case 1:score+=((LEVEL+1)*40);break;
-        case 2:score+=((LEVEL+1)*100);break;
-        case 3:score+=((LEVEL+1)*300);break;
-        case 4:score+=((LEVEL+1)*1200);break;
+        case 1:score+=((level+1)*40);break;
+        case 2:score+=((level+1)*100);break;
+        case 3:score+=((level+1)*300);break;
+        case 4:score+=((level+1)*1200);break;
         
             
         
     }
-         
-      printf("\nSCORE=%d\n",score);
+        
+    printf("\nSCORE=%d\n",score);
+    return score;  
+}
+
+int check_level (int score){
+    
+    if(level==1){
+        if(score>1000){
+            level++;
+        }
+    }
+    if(level==2){
+        if(score>2000){
+            level++;
+        }
+    }
+    return level;
 }
 
 void descend_board(int lastf){
@@ -222,6 +274,19 @@ int check_down (int n){     //argumento :numero de pieza  ______deuelvi 1 si me 
     return flag;*/
 }
 
+void clear_board(void){
+    int i,j;
+    for(i=0;i<16;i++){
+        for(j=0;j<16;j++){
+            gameboard[i+4][j]=0;
+        }
+    }
+        
+}
+
+
+
+
 void piece_down(int n){
     
     if(check_down(n)){
@@ -292,6 +357,101 @@ void piece_right(int n){
     }
 }
 
+
+
+void init_word(int palabra){
+    
+    int i,j;
+        
+    words[palabra].pos.x= 16;    
+    
+    for(i=0;i<words[palabra].sizey;i++){
+        for(j=0;j<words[palabra].sizex;j++){
+            if(words[palabra].values[i*(words[palabra].sizex)+j] == 11 ){
+
+                words[palabra].values[i*(words[palabra].sizex)+j]=1;
+
+            }
+
+        }
+    }
+    
+}
+
+
+
+
+
+void letter_left(int palabra){ 
+         
+    int i,j;
+    int py,px;
+    
+    py= words[palabra].pos.y;
+    px=--(words[palabra].pos.x);
+
+    if(px>100){
+        px=px-256;
+    }    
+    
+    if(px != 0-words[palabra].sizex){
+
+
+
+        for(j=0;j<words[palabra].sizex;j++){
+            for(i=0;i<words[palabra].sizey;i++){
+                if(words[palabra].values[i*(words[palabra].sizex)+j]){
+
+                    gameboard[py+i][px+1+j]=0;
+                }
+            } 
+        }
+
+        for(i=0;i<words[palabra].sizey;i++){
+            for(j=0;j<words[palabra].sizex;j++){
+
+
+                if(words[palabra].values[i*(words[palabra].sizex)+j]==1 && (px+j)<16 && (px+j)>0){
+
+                    gameboard[py+i][j+px]=words[palabra].values[i*(words[palabra].sizex)+j];
+
+                    if(px+j<=0){
+                      words[palabra].values[i*(words[palabra].sizex)+j]=11;  
+                    }
+
+                }
+
+
+            }
+        }
+    }
+    else{
+        init_word[palabra];
+    }
+}
+    
+void init_game(int chose_mode,int chosen_diff){
+    switch(chosen_mode){
+        case 1: // gameboard empieza normal
+            break;
+        case 2: //gameboard guardado de arreglo de tipo gameboard    
+            break;
+    }
+    switch(chosen_diff){
+        case 1: // set timex slow and gen pieza faciles
+            break;
+           
+        case 2: // set timex normal and gen pieza todas
+            break;
+            
+        case 3: // gameboard con dificultades y timex mas rapido
+            break;
+            
+        case 4: // modo leyenda
+            break;            
+    }
+    
+}
 
 void piece_left(int n){
     
@@ -443,6 +603,9 @@ void print_pieza(int n){
         
 }
 
+
+
+
 int rotate(int n){
     
     int i,j,cont=0;
@@ -534,10 +697,11 @@ void stayed_blocks(void){
             } 
             
         }
-    }
-    
-    
+    }   
 }
+
+
+
 
 void reorder_pieza(int n){
     
