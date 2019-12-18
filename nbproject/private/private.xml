@@ -7,10 +7,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/manucorcos/NetBeansProjects/TPFINALALE/structs.c</file>
             <file>file:/home/manucorcos/NetBeansProjects/TPFINALALE/game.c</file>
             <file>file:/home/manucorcos/NetBeansProjects/TPFINALALE/main.c</file>
+            <file>file:/home/manucorcos/NetBeansProjects/TPFINALALE/pc.c</file>
             <file>file:/home/manucorcos/NetBeansProjects/TPFINALALE/game.h</file>
+            <file>file:/home/manucorcos/NetBeansProjects/TPFINALALE/pc.h</file>
         </group>
     </open-files>
 </project-private>

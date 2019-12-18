@@ -13,6 +13,8 @@
 
 #ifndef GAME
 #define GAME
+
+
 int check_left (int gen_pieza);
 void game_update(int gen_pieza);
 int down_pieze(int piezano);
@@ -25,18 +27,22 @@ int check_down(int n);
 void piece_left(int n);
 void piece_right(int n);
 void piece_down(int n);
-int xor(int a,int b);
+int xor (int a,int b);
 int rotate(int n);
 void print_pieza(int n);
 void stayed_blocks(void);
 void reorder_pieza(int n);
 void down(int n);
 void letter_left(int palabra);
-void clean_word (int palabra);
+void clean_words (void);
 void clear_board(void);
 int check_level(int score);
 void init_word(int palabra);
 void init_game(int chosen_mode,int chosen_diff);
+void check_fin(int n);
+
+
+
 #endif
 
 

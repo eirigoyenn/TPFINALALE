@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include "structs.h"
 #include "game.h"
+#include "pc.h"
+//#include "rpi.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h> 
@@ -28,55 +30,38 @@
 
 
 #define  ONE_MS    	1000	   // One mseg
-#define  time_delay(x)  (x/100)    // x in ms , minvalue 100mseg
 
 #define ENTER '\n'
+
+
 
 
 int gameboard[VNFil+1][NCol];
 
 
-void update_board(void);
-void inicializacion(void);
-int move (void);
-
-void printboard (void);
-
-typedef struct { 
-    unsigned int x;
-    unsigned int y;
     
-}dcoord_t;
+int piece_set_down=0,finish=1;
+unsigned int TimerTick=4;
+int n,n2,end=1,palabra=0,numero=0,menu=1,set_menu=1,block=1;
+int get_move,conta,timer,lines=0;
+int pausa=0;
+unsigned int P0,P1,P2,P3,P4,P5,P6;
 
 
-typedef struct {
-    
-    int *values;
-    int size;
-    dcoord_t pos;    
-    
-}WORD; 
 
-WORD words[2];
-    
-int piece_set_down=0,finish=0;
-unsigned int TimerTick=2,level=1;
-int n,end=1,palabra=0,numero=0,chosen_mode,chosen_diff,menu=1,wait1,wait2;
-int get_move,conta,timex=70;
-void closepro(void);
-
+extern int level,score;
 
 void* thread_timer()  // Time base Thread
 {	       
     while(end)
     {
-        usleep(timex*ONE_MS); // 100ms * 
-        if (TimerTick){
-
+        usleep((timer-(level-1)*10)*ONE_MS);// timer definido con dificultad inicial
+        if (TimerTick){                     // contador de segundos
+                                            //TimerTick clock del juego
             TimerTick--;
-                printf("soy tick--\n\n");
         }
     }
+    return 0;
 }
 
 void* thread_down(){ // Periodic Task Thread
@@ -85,58 +70,78 @@ void* thread_down(){ // Periodic Task Thread
 	
     while (end) {
 
-        while(!menu && end){            
-            if(piece_set_down || (!TimerTick)){
-                    printf("soy Down\n\n");
-                    if(check_down(n)){
+        while(!menu){ 
+            
+            if(!TimerTick){ //si TimerTick es 0
 
-                        printf("bajo");
 
-                        piece_down(n);
+                    if(check_down(n)){ // analiza si puede bajar
 
+
+                        piece_down(n);  //si es positivo baja la pieza
                     }
-                    else{
-                        piece_set_down=1;
-                    }
+                    
+                    else{               // si es negativo la deja donde esta
+                        
+                        switch(n){
+                                case 0: P0++;
+                                break;
+                                case 1: P1++;
+                                break;
+                                case 2: P2++;
+                                break;
+                                case 3: P3++;
+                                break;
+                                case 4: P4++;
+                                break;
+                                case 5: P5++;
+                                break;
+                                case 6: P6++;
+                                break;                            
+                            }
+                     
+                            stayed_blocks(); // todas las piezas que cayeron las deja estaticas en el gameboard
+                            
+                            check_level(check_board(level)); // se fija si se aumenta el nivel o si se completaron filas
+                            clean_struct(n); // vuelve a poner las coordenadas de la estructura en 0
 
-                    if(piece_set_down){
+                            n=n2; 
+                            
+                            n2=gen_pieza(); //utilizo un generador de piezas aleatorio
+                            print_screen(n2);  
 
-                        printf("soy newpiece\n\n");
+                            check_fin(n); // me fijo si el juego termino
+                            
+                            usleep(20000);
 
-                        stayed_blocks(); 
-                        level=check_level(check_board(level));
-                        switch(level){
-                            case 2:timex=70000;
-                            case 3:timex=50000;
-                        }
-                        clean_struct(n);
-
-                        n=gen_pieza();
-                        printf("pieza numero:%d\n",n);
-                        print_pieza(n);
-                        piece_set_down=0;
-                        conta++;
-
-                    }
+                            print_pieza(n);// imprimo la pieza correspondiente en el gameboard
+                                             
+                    }               
+                    block=1;             
                     TimerTick=4;
             }
-        }    
+        }  
     }
+    return 0;
 }
 
 
-void * thread_joy(){ // Periodic Task Thread
+void * thread_events(){ // Periodic Task Thread
+        
+
+    while (end){  //recibe los eventos de teclado y del switch para el menu de pausa
+
+        if(pausa){
 
 
-
-        while (end){   
-
-            if(move()==10){
-                end=0;
-                closepro();
-            }
-
+            menu=1; // pongo menu en 1 asi no uso mas la logica del juego
+            pausa=0;
+            usleep(100000);
+            print_stopmenu(); // imprimo el menu de pausa
         }
+    }
+    closepro();       
+    return 0;
 }
 
 
@@ -149,18 +154,16 @@ void * thread_move(){ // The APP
 
 
         while(end){
-            
-            while(!menu && end){
+        
+            while(!menu){
                 
             
-                if(TimerTick && check_down(n) && piece_set_down==0 ){
+                if(TimerTick && block){
 
-                    printf("soy move\n\n");                
-                    get_move=move();
-
-
-
-                    if( get_move==2 ){
+                                    
+                    get_move=move(); // recibo del teclado que tecla se apreto y la guardo en get_move
+                            
+                    if( get_move==2 ){ // si se apreto la tecla para arriba, se fija si puede rotar
 
                         int rot;
                         rot=rotate(n);
@@ -170,57 +173,67 @@ void * thread_move(){ // The APP
                         }
                     }
 
-                    if( get_move==1 && !check_right(n) ){
-
+                    if( get_move==1 && !check_right(n) ){ // si se apreto la tecla para la derecha , me fijo si el movimiento es valido
 
                         piece_right(n);
-                        printf("soy move derecha \n\n");
+                  
 
                     }
 
-                    if( get_move==-1 && !check_left(n)){
+                    if( get_move==-1 && !check_left(n)){// si se apreto la tecla para la izquierda, me fijo si el movimiento es valido
 
                         piece_left(n);
 
                     }
 
-                    if( get_move==-2 ){
+                    if( get_move==-2 ){ // si se apreto la tecla para abajo, llama a la funcion down que acelera el movimiento hacia abajo
 
                         down(n);
                         
-                    }    
-
-                    if(move()==10){
-                        end=0;
                     }
-                    if (!check_down(n)){
+                    
+                    if(get_move==9){ // si se apreto el escape o la cruz de la ventana , salta el menu de pausa
+                        pausa=1;
+                        menu=1;
+                    }
+                    if(get_move==10){
+                        pausa=1;
+                        menu=1;
+                    } 
+                    
+                    if (!check_down(n)){ // pongo un timer para movepara alentizar el movimiento lateral
 
-                        usleep((timex-10)*ONE_MS);
+                        usleep((timer-10)*ONE_MS);
 
                     }
 
                 }
             }
         }
-
+        return 0;
 }
 
 
-void * thread_menu(){ // The APP
-
-
-        while(end){
-
+void * thread_menu(){ 
+    while(finish){
+        
+        while(set_menu){ // cada vez que el juego termine , se muestra el menu principal
+            
             while(menu){
-                print_menu();
-            }
-
-        }
-
+                    print_menu(); // muestra el menu principal
+                    print_screen(n2); // muestra el estado de lineas , stadisticas de piezas y le next piece
+                    menu=0;
+                    set_menu=0;
+                    usleep(20000);
+                }
+        }  
+    
+    }
+    return 0;
 }
 
 
-void * thread_init(){
+void * thread_init(){ // thread encargado de la inicializacion y de actualizar el board cada poco tiempo
     
     create_floor();
     clean_struct(0);
@@ -232,7 +245,7 @@ void * thread_init(){
     clean_struct(6);
 
     
-    clean_word(0);
+    clean_words(); 
 
     init_blocks();
     inicializacion();
@@ -240,27 +253,31 @@ void * thread_init(){
 
 
     n=gen_pieza();
-    printf("pieza numero:%d\n",n);
-
+    n2=gen_pieza();
     print_pieza(n);
 
             
     while(end){
+        
+        while(!menu){   
             update_board();
             usleep(1000);
         }
+    }
+    return 0;
 }
+    
 
 
 
-int main()
-{
-        pthread_t tid1,tid2,tid3,tid4,tid5;
+int main(){
+    
+        pthread_t tid1,tid2,tid3,tid4,tid5,tid6;
         srand(time(NULL));    
         
-        pthread_create(&tid4,NULL,thread_init,NULL);
-        usleep(1000000);
-       pthread_create(&tid5,NULL,thread_menu,NULL);
+        pthread_create(&tid4,NULL,thread_init,NULL); // inicializo todos los threads con delay entre los mismos
+        usleep(2000000);
+        pthread_create(&tid5,NULL,thread_menu,NULL); // este delay esta dado ya que quizas unthread quiere actuar sobre algo que no esta iniializado aun
         usleep(1000000);        
         pthread_create(&tid1,NULL,thread_timer,NULL);
         usleep(1000000);
@@ -268,13 +285,16 @@ int main()
         usleep(1000000);
         pthread_create(&tid2,NULL,thread_down,NULL);
         usleep(1000000);
+        pthread_create(&tid6,NULL,thread_events,NULL);
+        usleep(1000000);
         
       
-        pthread_join(tid1,NULL);
+        pthread_join(tid1,NULL); // espero a los threads a que terminen
         pthread_join(tid2,NULL);
-        pthread_join(tid3,NULL);     
+        pthread_join(tid3,NULL);  
         pthread_join(tid4,NULL);
-        pthread_join(tid5,NULL);        
+        pthread_join(tid5,NULL);
+        pthread_join(tid6,NULL);
         return 0;
         
 }

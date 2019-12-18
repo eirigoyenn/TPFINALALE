@@ -1,28 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "structs.h"
-#include "game.h"
-/*
-#include <allegro5/allegro.h>
-#include <allegro5/allegro_image.h>
-#include <allegro5/allegro_primitives.h> 
-#include <allegro5/allegro_color.h>
-#include <allegro5/allegro5.h>
-#include <allegro5/allegro_acodec.h>
-#include <allegro5/allegro_audio.h>
-*/
-
 #include <time.h>
 #include <unistd.h>
+#include <allegro5/allegro_audio.h>
+#include "structs.h"
+#include "game.h"
+#include "pc.h"
 
-#define LEVEL 0
-#define HORIZONTAL x
-#define VERTICAL y
 #define ENTER '\n'
 
-static int score,level=0;
 
+int score,level=1;
 
+int storage [VNFil+1][NCol];
+
+extern int timer,lines,menu;
 
 typedef struct { 
     unsigned int x;
@@ -65,15 +57,14 @@ extern ARR_PIECES piezas[7];
 
 extern NUM nums[9];
 
-extern WORD words[5];
+extern WORD words[6];
 
 
-int gen_pieza(void){
+int gen_pieza(void){ // se usa la funcion rand para recibir un numero aleatorio de pieza
     
-   
     srand(time(NULL));
     
-    int piezano= rand()%7;
+    int piezano= rand()%7; // 7 ya que hay 7 piezas
  
     return piezano;
 
@@ -81,18 +72,17 @@ int gen_pieza(void){
 
 
 
-void clean_struct (int gen_pieza){
+void clean_struct (int gen_pieza){ // clean struct pone las coordenadas de la pieza en x=5 e y=0 para que la pieza pueda caer desde arriba
     
     piezas[gen_pieza].pos.x=5;
     piezas[gen_pieza].pos.y=0;
     
-    if(piezas[gen_pieza].rotacion){
+    if(piezas[gen_pieza].rotacion){ // si la pieza esta rotadad
         int i;
         
         
         
-        for(i= 4-(piezas[gen_pieza].rotacion); i!=0 ;i--){
-            printf("%d\n",i);
+        for(i= 4-(piezas[gen_pieza].rotacion); i!=0 ;i--){// llamo a reorder pieza asi la dejamos en su estado original rotandola cuantas veces sea necesario
             reorder_pieza(gen_pieza);
         }
          piezas[gen_pieza].rotacion=0;
@@ -100,19 +90,22 @@ void clean_struct (int gen_pieza){
 }
 
 
-void clean_word (int palabra){
-    
-    words[palabra].pos.x=12;
-    words[palabra].pos.y=7;
-    
+void clean_words (void){ // clean words establece las coordenadas x e y de las palabras
+    int i;
+    for(i=0;i<6;i++){    
+        words[i].pos.x=12;
+        words[i].pos.y=7;
+    }    
 }
       
-int check_board(int level){
+int check_board(int level){ // check board se fija si existen filas llenas de piezas y de haberlas las borra y suma su score
     
     int i,j,countf=0,counts=0;
     
+    menu=1;
+    usleep(70000);
     
-    for(i=VNFil-1;i>=4;i-- ){
+    for(i=VNFil-1;i>=4;i-- ){ //suma la cantidad de cuadrados escritos en una fila
         
         for(j=NCol-1;j>=0;j--){
             
@@ -125,28 +118,26 @@ int check_board(int level){
         
                    
         
-        if(countf==NCol){
-            
-            
-            counts++;
-            
+        if(countf==NCol){// si esa cantidad es igual al numero de columnas, es una fila completa
+
+            counts++;            
             for(j=0;j<NCol;j++){
                 
                 gameboard[i][j]=0;  //hacer titilar las barras y que se haga todas jntas
             
             }
-            
-        descend_board(i);
+        descend_board(i); // desciendo el gameboard desde esa posicion
         ++i;
         usleep(100000);
         }
         
         countf=0;
             
-        
+        menu=0;
+        usleep(20000);
         
     }
-    switch(counts){
+    switch(counts){ // uso la formula adecuada para sumar el score
         
         case 1:score+=((level+1)*40);break;
         case 2:score+=((level+1)*100);break;
@@ -156,27 +147,43 @@ int check_board(int level){
             
         
     }
+    lines+=counts;
         
     printf("\nSCORE=%d\n",score);
     return score;  
 }
 
-int check_level (int score){
+int check_level (int score){ // me fijo el estado del nivel y si es necesario aumentarlo
     
     if(level==1){
         if(score>1000){
             level++;
+            play_sample();
+            
         }
     }
     if(level==2){
         if(score>2000){
             level++;
+            play_sample();
         }
     }
+    if(level==3){
+        if(score>3000){
+            level++;
+            play_sample();
+        }
+    }
+    if(level==4){
+        if(score>4000){
+            level++;
+            play_sample();
+        }
+    }    
     return level;
 }
 
-void descend_board(int lastf){
+void descend_board(int lastf){ // cuando se completa una fila desciendo el gameboard desde el indice que tenia la fila
     
     int i,j;
     for (i=lastf;i>0;i--){
@@ -196,7 +203,7 @@ void descend_board(int lastf){
     
 }
 
-int check_down (int n){     //argumento :numero de pieza  ______deuelvi 1 si me puedo mover ,0 si no
+int check_down (int n){   // check down revisa debajo de cada pieza y devuelve 1 si se puede bajar o 0 caso contrario
     
     int i,j,x=piezas[n].pos.x,y=(piezas[n].pos.y)+1,size=piezas[n].size,suma=0;
     
@@ -237,7 +244,7 @@ int check_down (int n){     //argumento :numero de pieza  ______deuelvi 1 si me 
     }
     }
     
-    if(suma!=(size*size) ){
+    if(suma!=(size*size) ){ // si la suma de todos los lugares da distinto al tamanio del arreglo, entonces esa pieza no puede descender
         
         suma=0;
         
@@ -245,36 +252,9 @@ int check_down (int n){     //argumento :numero de pieza  ______deuelvi 1 si me 
     }
     
     return suma;
-    /*int suma=0,flag=0,i,lastline=(piezas[n].size)+(piezas[n].pos.y);
-    if(lastline < VNFil){
-        
-        for(i=0;i<piezas[n].size;i++){
-
-            suma+=gameboard[lastline][i+(piezas[n].pos.x)];
-        }
-        
-
-    }
-    else{
-        
-        int excess=lastline-VNFil-1;
-        
-        for(i=0;i<piezas[n].size;i++){
-
-            suma+=gameboard[lastline-excess][i+(piezas[n].pos.x)] ;
-        }
-        
-    }
-
-    if(!suma){
-            
-        flag=1;
-    }
-
-    return flag;*/
 }
 
-void clear_board(void){
+void clear_board(void){ // borro el gameboard
     int i,j;
     for(i=0;i<16;i++){
         for(j=0;j<16;j++){
@@ -287,7 +267,7 @@ void clear_board(void){
 
 
 
-void piece_down(int n){
+void piece_down(int n){ // imprimo la pieza un lugar mas abajo
     
     if(check_down(n)){
         int i,j;
@@ -296,11 +276,12 @@ void piece_down(int n){
         
         py=++piezas[n].pos.y;
         px=piezas[n].pos.x;
+        
         if(px>NCol){
             px=px-256;
         }
         
-        for(j=0;j<piezas[n].size;j++){
+        for(j=0;j<piezas[n].size;j++){ // borro el lugar donde esta la pieza actualmente
            for(i=0;i<piezas[n].size;i++){
                 if(piezas[n].values[i*(piezas[n].size)+j]){
                 
@@ -310,7 +291,7 @@ void piece_down(int n){
             
         }
         
-        for(i=0;i<piezas[n].size;i++){
+        for(i=0;i<piezas[n].size;i++){ //dibujo en el tablero la posicion proxima de la pieza para crear la ilusion de que se mueve ahacia abajo
             for(j=0;j<piezas[n].size;j++){
                 
                 if(piezas[n].values[i*(piezas[n].size)+j]){
@@ -324,7 +305,7 @@ void piece_down(int n){
 }
 
 
-void piece_right(int n){
+void piece_right(int n){ // imprimo la posicion de la pieza un lugar a la derecga
     
     if(!check_right(n)){
         int i,j;
@@ -333,7 +314,7 @@ void piece_right(int n){
         py=piezas[n].pos.y;
         px=++(piezas[n].pos.x);
         
-        for(j=0;j<piezas[n].size;j++){
+        for(j=0;j<piezas[n].size;j++){//borro el lugar actual de la pieza
             for(i=0;i<piezas[n].size;i++){
                 if(piezas[n].values[i*(piezas[n].size)+j]){
                 
@@ -343,7 +324,7 @@ void piece_right(int n){
         }
         
         for(i=0;i<piezas[n].size;i++){
-            for(j=0;j<piezas[n].size;j++){
+            for(j=0;j<piezas[n].size;j++){ // imprimo la pieza un lugar a la derecha
                 
                 if(piezas[n].values[i*(piezas[n].size)+j] ){
                     
@@ -359,7 +340,7 @@ void piece_right(int n){
 
 
 
-void init_word(int palabra){
+void init_word(int palabra){ // inicio una palabra asi puede pasar de nuevo
     
     int i,j;
         
@@ -367,7 +348,7 @@ void init_word(int palabra){
     
     for(i=0;i<words[palabra].sizey;i++){
         for(j=0;j<words[palabra].sizex;j++){
-            if(words[palabra].values[i*(words[palabra].sizex)+j] == 11 ){
+            if(words[palabra].values[i*(words[palabra].sizex)+j] == 11 ){ // los lugares que tienen 11 del arreglo de una palabara es por que ya pasaron por el board
 
                 words[palabra].values[i*(words[palabra].sizex)+j]=1;
 
@@ -382,7 +363,7 @@ void init_word(int palabra){
 
 
 
-void letter_left(int palabra){ 
+void letter_left(int palabra){ //imprimo a un costado una palabra en 
          
     int i,j;
     int py,px;
@@ -426,28 +407,31 @@ void letter_left(int palabra){
         }
     }
     else{
-        init_word[palabra];
+        init_word(palabra);
     }
 }
-    
-void init_game(int chose_mode,int chosen_diff){
+
+void init_game(int chosen_mode,int chosen_diff){
     switch(chosen_mode){
-        case 1: // gameboard empieza normal
-            break;
-        case 2: //gameboard guardado de arreglo de tipo gameboard    
-            break;
+        case 1: clear_board();
+                create_floor();
+                break;
+
+        case 2: copy_board((int*)gameboard,(int*)storage);
+                create_floor();
+                break;
     }
     switch(chosen_diff){
-        case 1: // set timex slow and gen pieza faciles
+        case 1: timer=80;// set timex slow and gen pieza faciles
             break;
            
-        case 2: // set timex normal and gen pieza todas
+        case 2: timer=75;// set timex normal and gen pieza todas
             break;
             
-        case 3: // gameboard con dificultades y timex mas rapido
+        case 3: timer=60;// gameboard con dificultades y timex mas rapido
             break;
             
-        case 4: // modo leyenda
+        case 4: timer=50;// modo leyenda
             break;            
     }
     
@@ -495,32 +479,22 @@ int check_right (int gen_pieza){
     x=piezas[gen_pieza].pos.x;
     y=piezas[gen_pieza].pos.y;
     size=piezas[gen_pieza].size;
-    if(x>=NCol-size){
-        for(i=0;i<size && found_piece==0;i++){
-            for(j=0;j<size && found_piece==0;j++){
-                if(piezas[gen_pieza].values[i*size+j]){
-                    if(NCol==j+x+1){
+    for(i=0;i<size && found_piece==0;i++){
+        for(j=0;j<size && found_piece==0;j++){
+            if(piezas[gen_pieza].values[i*size+j]){
+
+
+                if(j<size-1){
+                    found_piece= xor(gameboard[i+y][j+x+1],piezas[gen_pieza].values[i*size+j+1]);
+                }            
+                else{
+                    if(gameboard[i+y][j+x+1]){
                         found_piece=1;
                     }
                 }
-            }        
-        }
-    }    
-    else{
-        
-        for(i=0;i<size && found_piece==0;i++){
-            for(j=0;j<size && found_piece==0;j++){
-                if(piezas[gen_pieza].values[i*size+j]){
-
-                    if(j<size-1){
-                        found_piece= xor(gameboard[i+y][j+x+1],piezas[gen_pieza].values[i*size+j+1]);
-                    }            
-                    else{
-                        if(gameboard[i+y][j+x+1]){
-                            found_piece=1;
-                        }
-                    }
-                }
+                if(NCol==j+x+1){
+                    found_piece=1;
+                }                    
             }
         }
     }
@@ -544,35 +518,25 @@ int check_left (int gen_pieza){
     x=piezas[gen_pieza].pos.x;
     y=piezas[gen_pieza].pos.y;
     size=piezas[gen_pieza].size;
+    
     if(x>NCol){
         x=x-256;
     }
-    
-    if(x<=0){
-        for(i=0;i<size && found_piece==0;i++){
-            for(j=0;j<size && found_piece==0;j++){
-                if(piezas[gen_pieza].values[i*size+j]){
-                    if((j+x-1)==-1){
+         
+    for(i=0;i<size && found_piece==0;i++){
+        for(j=0;j<size && found_piece==0;j++){
+            if(piezas[gen_pieza].values[i*size+j]){
+
+                if(j!=0){
+                    found_piece= xor(gameboard[i+y][j+x-1],piezas[gen_pieza].values[i*size+j-1]);
+                }            
+                else{
+                    if(gameboard[i+y][j+x-1]){
                         found_piece=1;
                     }
                 }
-            }        
-        }
-    }    
-    else{
-        
-        for(i=0;i<size && found_piece==0;i++){
-            for(j=0;j<size && found_piece==0;j++){
-                if(piezas[gen_pieza].values[i*size+j]){
-
-                    if(j!=0){
-                        found_piece= xor(gameboard[i+y][j+x-1],piezas[gen_pieza].values[i*size+j-1]);
-                    }            
-                    else{
-                        if(gameboard[i+y][j+x-1]){
-                            found_piece=1;
-                        }
-                    }
+                if((j+x-1)==-1){
+                    found_piece=1;
                 }
             }
         }
@@ -604,11 +568,43 @@ void print_pieza(int n){
 }
 
 
-
+void check_fin (int n){
+    int i,j,conta=0,term;    
+    i=4;
+    term=0;
+    menu=1;
+    usleep(30000);
+    if(piezas[n].pos.y<=4){
+        for(j=0;j<NCol;j++){
+            if(gameboard[i][j]>7){
+                conta++;
+            }
+        }
+        if(conta){
+            finish_game();
+            term=1;
+            
+        }
+    }
+    if(!term){
+      menu=0;
+    }
+    conta=0;
+    usleep(20000);
+}
 
 int rotate(int n){
     
-    int i,j,cont=0;
+    int i,j,cont=0,px;
+    
+    px=piezas[n].pos.x;
+    
+    
+    
+    if(px<0){
+        return 0;
+    }
+    
     
     for(i=0;i<piezas[n].size;i++){
         for(j=0;j<piezas[n].size;j++){
@@ -657,7 +653,6 @@ int rotate(int n){
         
         ++piezas[n].rotacion;
         
-        printf("pieza rotada=%d\n",piezas[n].rotacion);
         if (piezas[n].rotacion ==4){
             
             piezas[n].rotacion=0;
@@ -701,8 +696,6 @@ void stayed_blocks(void){
 }
 
 
-
-
 void reorder_pieza(int n){
     
     int size=piezas[n].size;
@@ -734,6 +727,7 @@ void reorder_pieza(int n){
 		}
 	}
 }
+
 void down(int n){
     int out=1;
     for(;check_down(n) && out;){

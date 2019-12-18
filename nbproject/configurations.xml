@@ -5,6 +5,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>game.h</itemPath>
+      <itemPath>pc.h</itemPath>
       <itemPath>structs.h</itemPath>
       <itemPath>termlib.h</itemPath>
     </logicalFolder>
@@ -31,6 +32,7 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>NewGame.bmp</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -63,6 +65,8 @@
           <commandLine>-lpthread</commandLine>
         </linkerTool>
       </compileType>
+      <item path="NewGame.bmp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="game.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="game.h" ex="false" tool="3" flavor2="0">
@@ -70,6 +74,8 @@
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="pc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="pc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="structs.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -98,6 +104,8 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="NewGame.bmp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="game.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="game.h" ex="false" tool="3" flavor2="0">
@@ -105,6 +113,8 @@
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="pc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="pc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="structs.c" ex="false" tool="0" flavor2="0">
       </item>
