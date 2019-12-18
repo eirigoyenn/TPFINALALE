@@ -14,6 +14,15 @@
 #ifndef PC_H
 #define PC_H
 
+typedef struct { 
+    unsigned int x;
+    unsigned int y;
+
+}dcoord_t;
+
+
+
+
 int inicializacion(void);
 int move (void);
 int print_menu (void);

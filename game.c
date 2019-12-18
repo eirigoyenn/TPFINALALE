@@ -16,11 +16,9 @@ int storage [VNFil+1][NCol];
 
 extern int timer,lines,menu;
 
-typedef struct { 
-    unsigned int x;
-    unsigned int y;
-    
-}dcoord_t;
+
+
+
 
 typedef struct {
     
