@@ -92,7 +92,6 @@ extern int end,menu,piece_set_down,lines,P0,P1,P2,P3,P4,P5,P6;
 
 int inicializacion (void){
 
-    int portAux;//puerto que me guarda la configuracion actual del puerto para hacerlo parpadear
     
     
     if (!al_init()){        //inicializacion general del allegro
@@ -100,7 +99,7 @@ int inicializacion (void){
         return -1;
     }
     
-   if (!al_install_keyboard()) {
+   if (!al_install_keyboard()) {//init keyboard
         fprintf(stderr, "failed to initialize the keyboard!\n");
         return -1;
     }
@@ -121,28 +120,28 @@ int inicializacion (void){
         return -1;
     }
     
-   if (!al_init_image_addon()) { // ADDON necesario para manejo(no olvidar el freno de mano) de imagenes 
+   if (!al_init_image_addon()) { // necesario para manejo de imagenes 
         fprintf(stderr, "failed to initialize image addon !\n");
         return -1;
     }
 
-    if (!al_install_audio()) {
+    if (!al_install_audio()) {//init audio
         fprintf(stderr, "failed to initialize audio!\n");
         return -1;
     }
 
-    if (!al_init_acodec_addon()) {
+    if (!al_init_acodec_addon()) {// init audio codec
         fprintf(stderr, "failed to initialize audio codecs!\n");
         return -1;
     }
 
-    if (!al_reserve_samples(4)) {
+    if (!al_reserve_samples(4)) { // reservar samples
         fprintf(stderr, "failed to reserve samples!\n");
         return -1;
     }
 
     
-    Tetris = al_load_sample("Tetris.ogg");
+    Tetris = al_load_sample("Tetris.ogg"); // apunto los punteros a sus archivos de audio correspondientes
 
     if (!Tetris) {
         printf("Audio clip sample not loaded!\n");
@@ -177,7 +176,7 @@ int inicializacion (void){
     al_register_event_source(event_queue, al_get_display_event_source(display)); //se registra la fuente de los eventos de cierre de display
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     
-    if(!display){
+    if(!display){//creo display
         al_shutdown_primitives_addon();      //se destruye la imagen porque ocupa espacio en heap y el programa fallo por otro motivo
        fprintf(stderr,"failed to create display");
         
@@ -186,7 +185,7 @@ int inicializacion (void){
     
 
     
-    Diff1 = al_load_bitmap("Diff1.bmp");
+    Diff1 = al_load_bitmap("Diff1.bmp"); //apunto los punteros a las fotos correspondientes
 
     if (!Diff1) {
         fprintf(stderr, "failed to load image Diff1!\n");
@@ -425,7 +424,7 @@ void erase_events (void){
 
 int print_menu (void){
     
-    al_set_target_backbuffer(display);
+    al_set_target_backbuffer(display); // direcciono las bitmaps al display
     al_stop_sample(&id);
     al_play_sample(TitleTheme, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &id); 
     int get_move=1,pc=1,px=1,chosen_mode,chosen_diff,conta=-5;
@@ -433,7 +432,7 @@ int print_menu (void){
 
 
 
-    while(get_move != 8){
+    while(get_move != 8){ // mientras no se aprete enter, hacemos parpadear el menu
         
         get_move=move();
         
@@ -450,7 +449,7 @@ int print_menu (void){
 
     get_move=1;
     
-    while(get_move != 8 ){
+    while(get_move != 8 ){ // mientras no se aprete enter, mostramos las opciones de juego
         
         get_move=move();
         
@@ -480,7 +479,7 @@ int print_menu (void){
     get_move=1;
     chosen_mode=pc;
     
-    while(get_move != 8){
+    while(get_move != 8){ // miesntras no se aprete enter mostramos los niveles de dificultad los cuales ponen el timer deseado
         
         get_move=move();
         
@@ -514,10 +513,10 @@ int print_menu (void){
     
     chosen_diff=px;
     al_stop_sample(&id);
-    al_play_sample(Tetris, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &id);
+    al_play_sample(Tetris, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &id); // play a la cancion ppal del juego
     al_draw_bitmap(Fondo,0,0,0);
     al_flip_display();
-    init_game(chosen_mode,chosen_diff);
+    init_game(chosen_mode,chosen_diff); // se inicializa el juego con los parametros elegidos
     
 }
 
@@ -539,12 +538,12 @@ void create_pantalla(void){           //se crea el grafico del puerto A(los 8fla
         
 }
 
-void print_stopmenu(void){
+void print_stopmenu(void){ // muestra el menu de pausa
     
     int i,j,palabra=0,numero,get_move;
     al_set_target_backbuffer(display);
     get_move=1;
-    while(get_move != 8){
+    while(get_move != 8){ // mientras no apreto enter eligo el modo que quiero
 
         get_move=move();
         switch(get_move){
@@ -582,9 +581,9 @@ void print_stopmenu(void){
     }
 
         usleep(500000);
-        leavestop(palabra);
-        al_draw_bitmap(Fondo,0,0,0);
+        leavestop(palabra); // inicializa el modo de juego que quiero
         print_screen(n2);
+        al_draw_bitmap(Fondo,0,0,0);
         usleep(100000);
         menu=0;
 }
@@ -598,8 +597,7 @@ void leavestop(int n){
     
     switch(n){
         
-        case 0: menu=1;
-                usleep(70000);
+        case 0: // new game,borro todas las estadisticas
                 clear_board();
                 clean_struct(n);
                 create_floor();
@@ -611,13 +609,11 @@ void leavestop(int n){
                 P4=0; 
                 P5=0; 
                 P6=0; 
-                menu=0;
-                usleep(30000);
+                
                 break;
        
-        case 1: menu=1;
-                usleep(70000);
-                copy_board((int*)gameboard,(int*)storage);
+        case 1: // copio las estadisiticas del juego guardado
+                copy_board((int*)gameboard,(int*)storage);//baja el tablero del storage
                 clean_struct(n);
                 create_floor();
                 score=scoret;
@@ -628,13 +624,10 @@ void leavestop(int n){
                 P4=p4;
                 P5=p5;
                 P6=p6;
-                menu=0;
-                usleep(30000);
                 break;
        
-        case 2: menu=1;
-                usleep(70000);
-                copy_board((int*)storage,(int*)gameboard);
+        case 2: //guardo las estadisticas del juego
+                copy_board((int*)storage,(int*)gameboard); // el tablero actual lo guarda en storage
                 clear_board();
                 copy_board((int*)gameboard,(int*)storage);
                 scoret=score;
@@ -646,15 +639,12 @@ void leavestop(int n){
                 p5=P5;
                 p6=P6;
                 create_floor();
-                menu=0;
-                usleep(30000);
+                
                 break;
                 
-        case 3: menu=1;
-                usleep(70000);
+        case 3: 
                 create_floor();
-                menu=0;
-                usleep(30000);
+               
                       
                 break; 
                 
@@ -671,7 +661,7 @@ void leavestop(int n){
 
 
 
-void copy_board(int *pllegada,int *psalida){
+void copy_board(int *pllegada,int *psalida){ // transfiere datos de un gameboard a otro
     
     int i,j;
     
@@ -687,7 +677,7 @@ void copy_board(int *pllegada,int *psalida){
     } 
 }
 
-void play_sample (void){
+void play_sample (void){ // hace nosar sample de nivel pasado
     
     al_stop_sample(&id);
     al_play_sample(LevelClear,1.3,0.0,1.0,ALLEGRO_PLAYMODE_LOOP,&id);
@@ -702,7 +692,7 @@ void play_sample (void){
 
 
 
-void print_screen (int n2){
+void print_screen (int n2){ // pone en pantalla las estadisticas de lineas completadas,score,y las cantidad de piezas
     int k,i,scorep,numero,linep;
     static int P0p=1,P1p=1,P2p=1,P3p=1,P4p=1,P5p=1,P6p=1,P7p=1,P8p=1,P9p=1;
     
@@ -711,7 +701,7 @@ void print_screen (int n2){
     
     al_set_target_backbuffer(display);
     
-    switch(n2){
+    switch(n2){ //muestro la pieza siguiente
         
             case 0: al_draw_bitmap(IP0,464,252,0);
                     al_flip_display();
@@ -740,7 +730,7 @@ void print_screen (int n2){
     for(k=560,i=0;i<5;i++){
         
         numero=scorep%10;
-        switch(numero){
+        switch(numero){ //muestro el score
 
                 case 0: al_draw_bitmap(N0,k,150,0);
                         al_flip_display();
@@ -779,7 +769,7 @@ void print_screen (int n2){
     
     
     linep=lines;
-    for(k=395,i=0;i<5;i++){
+    for(k=395,i=0;i<5;i++){ // muestro las lineas
         
         numero=linep%10;
         switch(numero){
@@ -818,7 +808,7 @@ void print_screen (int n2){
         linep/=10;
         k-=15;
     } 
-    P0p=P0;
+    P0p=P0; // de ahora en mas imprimo la cantidad de veces que se imprimio x pieza
     for(k=120,i=0;i<5;i++){
 
         numero=P0p%10;
@@ -1109,11 +1099,11 @@ void print_screen (int n2){
     }       
    
          
-    menu=0;
+    menu=0; // levanto el flag menu
     usleep(10000);
 }
 
-void finish_game (void){
+void finish_game (void){ // si termino el programa vuelkvo al menu prinipal
     menu=1;
     piece_set_down=0;
     usleep(50000);
@@ -1126,7 +1116,7 @@ void finish_game (void){
 }
 
 
-int move(void){
+int move(void){ // funcion que me devuelve la tecla apretada
    
    
     al_get_next_event(event_queue, &ev);
@@ -1204,7 +1194,7 @@ int move(void){
 }  
 
 
-void closepro(void){
+void closepro(void){ // funcion que desinstala los plugins de alegro
     
     al_stop_sample(&id);
     al_play_sample(GameOver, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &id);
@@ -1234,8 +1224,8 @@ void closepro(void){
     
 }
 
-void update_board(void){
-    
+void update_board(void){ // funcion principal en el juego
+                         // esta funcion actualiza el gameboard y lo imprime en pantalla
     int i,j;
     
     for(i=0;i<16;i++){

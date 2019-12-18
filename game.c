@@ -133,8 +133,7 @@ int check_board(int level){ // check board se fija si existen filas llenas de pi
         
         countf=0;
             
-        menu=0;
-        usleep(20000);
+        
         
     }
     switch(counts){ // uso la formula adecuada para sumar el score
@@ -150,6 +149,8 @@ int check_board(int level){ // check board se fija si existen filas llenas de pi
     lines+=counts;
         
     printf("\nSCORE=%d\n",score);
+    menu=0;
+    usleep(20000);
     return score;  
 }
 
@@ -363,7 +364,7 @@ void init_word(int palabra){ // inicio una palabra asi puede pasar de nuevo
 
 
 
-void letter_left(int palabra){ //imprimo a un costado una palabra en 
+void letter_left(int palabra){ //imprimo a un costado una palabra en pantalla para simular menu
          
     int i,j;
     int py,px;
@@ -383,7 +384,7 @@ void letter_left(int palabra){ //imprimo a un costado una palabra en
             for(i=0;i<words[palabra].sizey;i++){
                 if(words[palabra].values[i*(words[palabra].sizex)+j]){
 
-                    gameboard[py+i][px+1+j]=0;
+                    gameboard[py+i][px+1+j]=0; //pongo en 0 la posicion vieja asi crea ilusion de pasarlo
                 }
             } 
         }
@@ -397,7 +398,7 @@ void letter_left(int palabra){ //imprimo a un costado una palabra en
                     gameboard[py+i][j+px]=words[palabra].values[i*(words[palabra].sizex)+j];
 
                     if(px+j<=0){
-                      words[palabra].values[i*(words[palabra].sizex)+j]=11;  
+                      words[palabra].values[i*(words[palabra].sizex)+j]=11;  //cada palabra que se va del gameboard se pone en 11
                     }
 
                 }
@@ -411,7 +412,7 @@ void letter_left(int palabra){ //imprimo a un costado una palabra en
     }
 }
 
-void init_game(int chosen_mode,int chosen_diff){
+void init_game(int chosen_mode,int chosen_diff){ // funcipn que elige el modo de juego deseado
     switch(chosen_mode){
         case 1: clear_board();
                 create_floor();
@@ -437,7 +438,7 @@ void init_game(int chosen_mode,int chosen_diff){
     
 }
 
-void piece_left(int n){
+void piece_left(int n){ // funcion que deja la pieza impresa una posicion a la izquierda
     
     if(!check_left(n)){
         int i,j;
@@ -454,7 +455,7 @@ void piece_left(int n){
             for(i=0;i<piezas[n].size;i++){
                 if(piezas[n].values[i*(piezas[n].size)+j]){
                 
-                    gameboard[py+i][px+1+j]=0;
+                    gameboard[py+i][px+1+j]=0; // imprimo 0 en la posicion actual
                 }
             } 
             
@@ -465,7 +466,7 @@ void piece_left(int n){
                 
                 if(piezas[n].values[i*(piezas[n].size)+j] ){
                 
-                    gameboard[py+i][j+px]=piezas[n].values[i*(piezas[n].size)+j];
+                    gameboard[py+i][j+px]=piezas[n].values[i*(piezas[n].size)+j];// imprimo la pieza a la izquierda
                 }
                 
             }
@@ -473,7 +474,7 @@ void piece_left(int n){
     }
 }
 
-int check_right (int gen_pieza){
+int check_right (int gen_pieza){// se fija si la pieza puede ser movida hacia la derecha
     
     int x,y,size,i,j,found_piece=0;
     x=piezas[gen_pieza].pos.x;
@@ -485,14 +486,14 @@ int check_right (int gen_pieza){
 
 
                 if(j<size-1){
-                    found_piece= xor(gameboard[i+y][j+x+1],piezas[gen_pieza].values[i*size+j+1]);
-                }            
+                    found_piece= xor(gameboard[i+y][j+x+1],piezas[gen_pieza].values[i*size+j+1]); //para las dos primeras columnas de la pieza llamo a la funcion xor entre el numero del tablero a su derecha 
+                }                                                                                // y el numero de la pieza a su derecha
                 else{
-                    if(gameboard[i+y][j+x+1]){
+                    if(gameboard[i+y][j+x+1]){ // si es la tercer columna, si encuentro un 1 a la derecha no se puede mover mas 
                         found_piece=1;
                     }
                 }
-                if(NCol==j+x+1){
+                if(NCol==j+x+1){ // si el numero en x aumentado en 1 supera al de las columnas, no se puede mover hacia la derecha
                     found_piece=1;
                 }                    
             }
@@ -502,8 +503,8 @@ int check_right (int gen_pieza){
 }
 
 
-int xor (int a,int b){
-    if (a == b){
+int xor (int a,int b){ // funcion basica de xor , lo que quiero de esta funcion es un xor entre los 1 del tablero y los 1 del arreglo de la pieza.
+    if (a == b){      // de esta forma yo se rapidamente si todos los "1" del arreglo de la pieza se pueden mover hacia la derecha/izquierda
         return 0;
     }
     else{
@@ -512,7 +513,7 @@ int xor (int a,int b){
 }
 
 
-int check_left (int gen_pieza){
+int check_left (int gen_pieza){ // me fijo si la pieza se puede mover hacia la izquierda. devuelve 0 en caso de exito y 1 en caso de fail
     
     int x,y,size,i,j,found_piece=0;
     x=piezas[gen_pieza].pos.x;
@@ -535,7 +536,7 @@ int check_left (int gen_pieza){
                         found_piece=1;
                     }
                 }
-                if((j+x-1)==-1){
+                if((j+x-1)==-1){ // simil a la funcion de la derecha solo que esta pregunta si la pos en x decrementado en 1 es -1 no se puede mover
                     found_piece=1;
                 }
             }
@@ -546,7 +547,7 @@ int check_left (int gen_pieza){
 
    
     
-void print_pieza(int n){
+void print_pieza(int n){// imprime la pieza en lo mas alto de gameboard (lugares no visibles) por lo cual genera la ilusion de caida
 	
     int i,j;
     
@@ -568,7 +569,7 @@ void print_pieza(int n){
 }
 
 
-void check_fin (int n){
+void check_fin (int n){ // se fija si hay piezas estacionadas en la parte mas altas del tablero visible
     int i,j,conta=0,term;    
     i=4;
     term=0;
@@ -593,7 +594,7 @@ void check_fin (int n){
     usleep(20000);
 }
 
-int rotate(int n){
+int rotate(int n){ // funcion encaragada de rotar la pieza
     
     int i,j,cont=0,px;
     
@@ -610,7 +611,7 @@ int rotate(int n){
         for(j=0;j<piezas[n].size;j++){
             
                 
-            if(gameboard[i+piezas[n].pos.y][j+piezas[n].pos.x] != piezas[n].values[i*piezas[n].size+j]){
+            if(gameboard[i+piezas[n].pos.y][j+piezas[n].pos.x] != piezas[n].values[i*piezas[n].size+j]){ // en la posicion deseada, se fija si es posible rotar la pieza para lo cual utiliza un contador
                 cont++;
             } 
             
@@ -618,7 +619,7 @@ int rotate(int n){
     }
     
     
-    if( piezas[n].pos.x+piezas[n].size <= NCol && cont==0 ){
+    if( piezas[n].pos.x+piezas[n].size <= NCol && cont==0 ){ // si es contador es igual a 0(exito) la pieza se puede rotar. aparte la pieza tambien debe etar bien ubicada
         
     
     
@@ -663,7 +664,7 @@ int rotate(int n){
      return (!cont);   
 }
 
-void stayed_blocks(void){
+void stayed_blocks(void){ // funcion la cual tranforma 1 en 11, 2 en 12 ,..., etc. esto genera que las piezas queden estacionadas en el tablero
     
     int i,j;
     for(i=0;i<VNFil;i++){
@@ -696,7 +697,7 @@ void stayed_blocks(void){
 }
 
 
-void reorder_pieza(int n){
+void reorder_pieza(int n){ // vuelve la pieza al estado original en el que estaba de rotacion
     
     int size=piezas[n].size;
 	
@@ -728,7 +729,7 @@ void reorder_pieza(int n){
 	}
 }
 
-void down(int n){
+void down(int n){ // se encarga de generar una bajada rapida a la pieza
     int out=1;
     for(;check_down(n) && out;){
         if (move()==-2){
